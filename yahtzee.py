@@ -34,7 +34,8 @@ class hand(object):
         "Q": "| Total      | "
     }
 
-    def __init__(self):
+    def __init__(self,name="P0"):
+        self.name = name
         self.card = {
             "A": 0,
             "B": 0,
@@ -54,8 +55,11 @@ class hand(object):
 
     def newround(self):
         self.turn = 1
-        self.dice = [ die(), die(), die(), die(), die() ]
-        self.hold = [ False, False, False, False, False ]
+        self.dice = []
+        self.hold = []
+        for i in range(5):
+            self.dice.append(die())
+            self.hold.append(False)
 
     def matchcount(self):
         maxcount = 0
@@ -151,24 +155,37 @@ class hand(object):
         self.newround()
 
     def showcard(self):
+        print("scorecard: {}".format(self.name))
+        print("=====================")
         tophalf = 0
         for top in "ABCDEF":
             header = top
             if self.card[top] != 0: header = "-"
-            print("{} {} {}".format(header, self.text[top],self.card[top]))
-            tophalf += self.card[top]
-        print("# {} {}".format(self.text["N"],tophalf))
+            if self.card[top] == "-0":
+                print("{} {}  -0".format(header, self.text[top]))
+            else:
+                print("{} {} {: 3}".format(header, self.text[top],self.card[top]))
+            tophalf += int(self.card[top])
+        print("--|------------|-----")
+        print("= {}{: 4}".format(self.text["N"],tophalf))
         bonus = 0
         if tophalf >= 63: bonus = 35
-        print("# {} {}".format(self.text["O"],bonus))
+        print("+ {}{: 4}".format(self.text["O"],bonus))
+        print("--|------------|-----")
         bothalf = 0
         for bot in "GHIJKLM":
             header = bot
             if self.card[bot] != 0: header = "-"
-            print("{} {} {}".format(header, self.text[bot],self.card[bot]))
+            if self.card[bot] == "-0":
+                print("{} {}  -0".format(header, self.text[bot]))
+            else:
+                print("{} {} {: 3}".format(header, self.text[bot],self.card[bot]))
             bothalf += int(self.card[bot])
-        print("# {} {}".format(self.text["P"],bothalf))
-        print("# {} {}".format(self.text["Q"],tophalf+bonus+bothalf))
+        print("--|------------|-----")
+        print("= {}{: 4}".format(self.text["P"],bothalf))
+        print("--|------------|-----")
+        print("=={}{: 4}".format(self.text["Q"],tophalf+bonus+bothalf))
+        print("=====================")
 
     def toggle(self,slot):
         self.hold[slot] = self.hold[slot] == False
@@ -189,40 +206,53 @@ class hand(object):
 
     def __str__(self):
         ret = ""
+        rollname = [ "unused", "1st", "2nd", "3rd" ]
         for i in range(len(self.dice)):
             if self.hold[i]:
                 if i == 0:
-                    ret = "Turn: {} | [{}]".format(self.turn, self.dice[i])
+                    ret = "{}: {} roll | [{}]".format(self.name, rollname[self.turn], self.dice[i])
                 else:
                     ret = "{} [{}]".format(ret, self.dice[i])
             else:
                 if i == 0:
-                    ret = "Turn: {} | .{}.".format(self.turn, self.dice[i])
+                    ret = "{}: {} roll | .{}.".format(self.name, rollname[self.turn], self.dice[i])
                 else:
                     ret = "{} .{}.".format(ret, self.dice[i])
         return(ret)
     
+    def getcmds(self):
+        cmds = " "
+        try:
+            cmds = input("{} > ".format(self))
+        except KeyboardInterrupt as e:
+            cmds = "q"
+        except EOFError as e:
+            cmds = "q"
+        return cmds
+
+    
 class yahtzee(object):
     def __init__(self):
-        P1 = hand()
+        P1 = hand("P1")
+        P1.showcard()
         while (not P1.complete()):
-            print("P1: {}".format(P1))
-            for cmd in input("> "):
+            for cmd in P1.getcmds():
                 n = yahtzee.GetCmdNumber(cmd)
                 a = yahtzee.GetCmdLetter(cmd)
                 if ( n != 0 ): P1.toggle(n-1)
                 elif ( a != 0 ): P1.score(a)
-                elif cmd == "q": self.running = False
+                elif cmd == "q": return
                 elif cmd == "r": P1.roll()
                 elif cmd == "v": P1.showcard()
                 elif cmd == " ": pass
                 else:
                     print("### INSTRUCTIONS ###")
-                    print("q to quit")
-                    print("v to view the scorecard")
-                    print("r to roll free dice    | .#.")
-                    print("1..5 to hold that die  | [#]")
-                    print("A..M score dice in that slot (view card to see slot IDs)")
+                    print("> q to quit")
+                    print("> v to view the scorecard")
+                    print("> r to roll free dice    | .#.")
+                    print("> 1..5 to hold that die  | [#]")
+                    print("> A..F score dice in the upper half")
+                    print("> G..M score dice in lower half")
 
     def GetCmdNumber(cmd):
         if cmd in "12345":
