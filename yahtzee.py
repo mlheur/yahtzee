@@ -229,22 +229,27 @@ class hand(object):
         except EOFError as e:
             cmds = "q"
         return cmds
-
     
-class yahtzee(object):
-    def __init__(self):
-        P1 = hand("P1")
-        P1.showcard()
-        while (not P1.complete()):
-            for cmd in P1.getcmds():
-                n = yahtzee.GetCmdNumber(cmd)
-                a = yahtzee.GetCmdLetter(cmd)
-                if ( n != 0 ): P1.toggle(n-1)
-                elif ( a != 0 ): P1.score(a)
-                elif cmd == "q": return
-                elif cmd == "r": P1.roll()
-                elif cmd == "v": P1.showcard()
-                elif cmd == " ": pass
+    def doturn(self):
+        self.showcard()
+        if self.complete(): return
+        while True:
+            for cmd in self.getcmds():
+                n = self.GetCmdNumber(cmd)
+                a = self.GetCmdLetter(cmd)
+                if ( n != 0 ):
+                    self.toggle(n-1)
+                elif ( a != 0 ):
+                    self.score(a)
+                    return False
+                elif cmd == "q":
+                    return True
+                elif cmd == "r":
+                    self.roll()
+                elif cmd == "v":
+                    self.showcard()
+                elif cmd == " ":
+                    pass
                 else:
                     print("### INSTRUCTIONS ###")
                     print("> q to quit")
@@ -254,15 +259,28 @@ class yahtzee(object):
                     print("> A..F score dice in the upper half")
                     print("> G..M score dice in lower half")
 
-    def GetCmdNumber(cmd):
+    def GetCmdNumber(self,cmd):
         if cmd in "12345":
             return int(cmd)
         return 0
 
-    def GetCmdLetter(cmd):
+    def GetCmdLetter(self,cmd):
         if cmd in "ABCDEFGHIJKLM":
             return cmd
         return 0
+
+
+class yahtzee(object):
+    def __init__(self):
+        players = [ hand("P1"), hand("P2") ]
+        completion = [ False, False ]
+        quit = False
+        while False in completion:
+            for i in range(len(players)):
+                quit = players[i].doturn()
+                if quit:
+                    return
+                completion[i] = players[i].complete()
 
 if __name__ == "__main__":
     yahtzee()
