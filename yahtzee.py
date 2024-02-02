@@ -265,6 +265,7 @@ class hand(object):
         return 0
 
     def GetCmdLetter(self,cmd):
+        cmd = cmd.upper()
         if cmd in "ABCDEFGHIJKLM":
             return cmd
         return 0
