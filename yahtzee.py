@@ -233,31 +233,43 @@ class hand(object):
     def doturn(self):
         self.showcard()
         if self.complete(): return
-        while True:
-            for cmd in self.getcmds():
-                n = self.GetCmdNumber(cmd)
-                a = self.GetCmdLetter(cmd)
-                if ( n != 0 ):
-                    self.toggle(n-1)
-                elif ( a != 0 ):
-                    self.score(a)
-                    return False
-                elif cmd == "q":
-                    return True
-                elif cmd == "r":
-                    self.roll()
-                elif cmd == "v":
+        EndTurn = False
+        while not EndTurn:
+            words = self.getcmds().split()
+            # TODO: more input sanitation.
+            for word in words:
+                if word.lower() == ("fix"):
+                    self.card[words[1].upper()] = int(words[2])
                     self.showcard()
-                elif cmd == " ":
-                    pass
+                    break
                 else:
-                    print("### INSTRUCTIONS ###")
-                    print("> q to quit")
-                    print("> v to view the scorecard")
-                    print("> r to roll free dice    | .#.")
-                    print("> 1..5 to hold that die  | [#]")
-                    print("> A..F score dice in the upper half")
-                    print("> G..M score dice in lower half")
+                    for cmd in word:
+                        n = self.GetCmdNumber(cmd)
+                        a = self.GetCmdLetter(cmd)
+                        if ( n != 0 ):
+                            self.toggle(n-1)
+                        elif ( a != 0 ):
+                            self.score(a)
+                            EndTurn = True
+                        elif cmd == "q":
+                            return True
+                        elif cmd == "r":
+                            self.roll()
+                        elif cmd == "v":
+                            self.showcard()
+                        elif cmd == "p":
+                            self.showcard()
+                        elif cmd == " ":
+                            pass
+                        else:
+                            print("### INSTRUCTIONS ###")
+                            print("> q to quit")
+                            print("> v or p to view or print the scorecard")
+                            print("> r to roll free dice    | .#.")
+                            print("> 1..5 to hold that die  | [#]")
+                            print("> A..F score dice in the upper half")
+                            print("> G..M score dice in lower half")
+                            print("> fix A..M ## to correct an honest mistake")
 
     def GetCmdNumber(self,cmd):
         if cmd in "12345":
