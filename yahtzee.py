@@ -1,4 +1,5 @@
 from random import randint as rand
+from sys import argv as argv
 
 class die(object):
     def getvalue(self):
@@ -284,9 +285,12 @@ class hand(object):
 
 
 class yahtzee(object):
-    def __init__(self):
-        players = [ hand("P1"), hand("P2") ]
-        completion = [ False, False ]
+    def __init__(self, pnames):
+        players = []
+        completion = []
+        for name in pnames:
+            players.append(hand(name))
+            completion.append( False )
         quit = False
         while False in completion:
             for i in range(len(players)):
@@ -296,4 +300,11 @@ class yahtzee(object):
                 completion[i] = players[i].complete()
 
 if __name__ == "__main__":
-    yahtzee()
+    PRENAMES = [ "P1", "P2", "P3", "P4", "P5", "P6" ]
+    np = 1
+    if len(argv) > 1:
+        np = int(argv[1])
+    players = []
+    for i in range(np):
+        players.append(PRENAMES[i])
+    yahtzee(players)
